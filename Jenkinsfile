@@ -51,11 +51,35 @@ pipeline {
                 }
             }
         }
-        stage('Hello World') {
+        stage('Docker Build & Tag Image') {
             steps {
-                echo "HELLO 123 WORLD"
+               script {
+                   // This step should not normally be used in your script. Consult the inline help for details.
+                withDockerRegistry(credentialsId: 'docker-creds', url:'') {
+                    sh "docker build -t iamvijay/ekart:latest -f docker/Dockerfile ."
+                    }
+               }
+               }
+            }
+    stage('Perform Trivy Scan') {
+            steps {
+                sh "trivy image iamvijay/ekart:latest > trivy-report.txt"
             }
         }
-        
-        }
-    }
+    stage('Docker Push Image') {
+            steps {
+               script {
+                   // This step should not normally be used in your script. Consult the inline help for details.
+                withDockerRegistry(credentialsId: 'docker-creds', url:'') {
+                    sh "docker push iamvijay/ekart:latest"
+                    }
+               }
+               }
+            }
+   stage('Hello WORLD') {
+            steps {
+                echo "Hello World"
+            }
+        }         
+}
+}
